@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const workerSchema = new mongoose.Schema(
   {
-    workderId: {
+    workerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },

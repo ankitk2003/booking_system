@@ -66,9 +66,11 @@ const createUser = async (req, res) => {
       role,
     });
 
+    console.log("User created:", user); // Debug log
+
     if (role === "worker") {  
       await Worker.create({
-       workderId: user._id,
+       workerId: user._id,
        skills: ["general"], // Default skill, can be updated later
        isActive: true,
       });
