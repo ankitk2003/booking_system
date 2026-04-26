@@ -2,6 +2,7 @@ import User from "../models/userModel.js";
 import Worker from "../models/workerModel.js";
 import Booking from "../models/bookingModel.js";
 import Schedule from "../models/scheduleModel.js";
+import redis from "../config/redis.js"
 const getCustomerData = async (req, res) => {
   try {
     const userId = req.userId;
@@ -91,11 +92,45 @@ const getAllWorkers = async (req, res) => {
   }
 };
 
+// const getWorkerSlot = async (req, res) => {
+//   try {
+//     const workerId = req.params.workerId;
+//     const slots = await Schedule.find({ workerId });
+//     return res.status(200).json({ slots });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ message: "Server error" });
+//   }
+// };
+
 const getWorkerSlot = async (req, res) => {
   try {
     const workerId = req.params.workerId;
+    console.log("Fetching slots for worker ID:", workerId); // Debug log
+    //  Cache key
+    const cacheKey = `worker:${workerId}:slots`;
+
+    // . Check Redis
+    const cachedData = await redis.get(cacheKey);
+
+    if (cachedData) {
+      console.log("⚡ Serving from Redis");
+      return res.status(200).json({
+        slots: JSON.parse(cachedData),
+      });
+    }
+
+   //fetch from DB
+    console.log("Fetching from DB");
     const slots = await Schedule.find({ workerId });
+
+    //  Store in Redis (5 min expiry)
+    await redis.set(cacheKey, JSON.stringify(slots), {
+      EX: 300, // 5 minutes
+    });
+
     return res.status(200).json({ slots });
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server error" });
