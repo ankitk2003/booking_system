@@ -349,8 +349,30 @@ npm run dev
 # 🧪 Test Credentials
 
 ```id="ikg2ey"
-Email: ankit@gmail.com  
+
+these are the id's to book slot
+ 
+Email: customer1@gmail.com  
 Password: ankit
+role:customer
+
+Email: customer2@gmail.com  
+Password: ankit
+role:customer
+
+
+ these are the id's to create slot
+
+Email: worker-1@gmail.com  
+Password: ankit
+role:customer
+
+
+Email: worker-2@gmail.com  
+Password: ankit
+role:worker
+
+
 ```
 
 ---
