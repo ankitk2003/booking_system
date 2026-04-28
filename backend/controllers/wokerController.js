@@ -32,6 +32,11 @@ import Worker from "../models/workerModel.js";
 const createWorkerSlot = async (req, res) => {
   try {
     const { startHours, endHours } = req.body;
+
+    console.log("Received slot creation request:", {
+      startHours,
+      endHours,
+    });
     const workerId = req.userId;
 
     const date = new Date().toLocaleDateString();
