@@ -126,7 +126,7 @@ const getWorkerSlot = async (req, res) => {
 
     //  Store in Redis (5 min expiry)
     await redis.set(cacheKey, JSON.stringify(slots), {
-      EX: 300, // 5 minutes
+      EX: 30, // 5 minutes
     });
 
     return res.status(200).json({ slots });

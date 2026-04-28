@@ -11,6 +11,7 @@ function CustomerPage() {
   const [selectedDateIndex, setSelectedDateIndex] = useState(0);
   const [selectedWorker, setSelectedWorker] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [todayDate, setTodayDate] = useState("");
 
   useEffect(() => {
     const fetchWorkers = async () => {
@@ -30,7 +31,7 @@ function CustomerPage() {
     try {
       const res = await getWorkerSlots(workerId);
 
-    //   console.log("All schedules:", res.slots);
+      console.log("All schedules:", res.slots);
 
       setSchedules(res.slots || []);
       setSelectedWorker(workerId);
@@ -46,36 +47,136 @@ function CustomerPage() {
     setSelectedSlot(slot);
   };
 
-  const handleConfirmBooking = async () => {
-    const currentSchedule = schedules[selectedDateIndex];
+  // const handleConfirmBooking = async () => {
+  //   const currentSchedule = schedules[selectedDateIndex];
 
-    try {
-      await bookWorkerSlot({
-        workerId: selectedWorker,
-        slotId: selectedSlot._id,
-        date: currentSchedule.date,
-        startTime: selectedSlot.startTime,
-        endTime: selectedSlot.endTime,
-      });
+  //   try {
+  //     await bookWorkerSlot({
+  //       workerId: selectedWorker,
+  //       slotId: selectedSlot._id,
+  //       date: currentSchedule.date,
+  //       startTime: selectedSlot.startTime,
+  //       endTime: selectedSlot.endTime,
+  //     });
 
-      alert("Slot booked successfully!");
+  //     alert("Slot booked successfully!");
 
-      // update UI
-      const updatedSchedules = [...schedules];
-      updatedSchedules[selectedDateIndex].slots = updatedSchedules[
-        selectedDateIndex
-      ].slots.map((s) =>
-        s._id === selectedSlot._id ? { ...s, isBooked: true } : s,
-      );
+  //     // update UI
+  //     const updatedSchedules = [...schedules];
+  //     updatedSchedules[selectedDateIndex].slots = updatedSchedules[
+  //       selectedDateIndex
+  //     ].slots.map((s) =>
+  //       s._id === selectedSlot._id ? { ...s, isBooked: true } : s,
+  //     );
 
-      setSchedules(updatedSchedules);
-      setSelectedSlot(null);
-    } catch (error) {
-      console.error(error);
-      alert("Booking failed", error.response?.data?.message || error.message);
-    }
+  //     setSchedules(updatedSchedules);
+  //     setSelectedSlot(null);
+  //   } catch (error) {
+  //     console.error(error);
+  //     alert("Booking failed", error.response?.data?.message || error.message);
+  //   }
+  // };
+
+
+//  const handleConfirmBooking = async () => {
+//   if (!selectedSlot) {
+//     alert("Please select a slot");
+//     return;
+//   }
+
+//   const todaySchedules = schedules.filter((s) => isToday(s.date));
+//   const currentSchedule = todaySchedules[selectedDateIndex];
+
+//   const formatDateForBackend = (dateStr) => {
+//     const [d, m, y] = dateStr.split("/");
+//     return `${parseInt(d)}/${parseInt(m)}/${y}`;
+//   };
+
+//   try {
+//     await bookWorkerSlot({
+//       workerId: selectedWorker,
+//       slotId: selectedSlot._id,
+//       date: formatDateForBackend(currentSchedule.date),
+//       startTime: selectedSlot.startTime,
+//       endTime: selectedSlot.endTime,
+//     });
+
+//     alert("Slot booked successfully!");
+
+//     const updatedSchedules = [...schedules];
+
+//     const scheduleIndex = updatedSchedules.findIndex(
+//       (s) => s.date === currentSchedule.date
+//     );
+
+//     updatedSchedules[scheduleIndex].slots = updatedSchedules[
+//       scheduleIndex
+//     ].slots.map((s) =>
+//       s._id === selectedSlot._id ? { ...s, isBooked: true } : s
+//     );
+
+//     setSchedules(updatedSchedules);
+//     setSelectedSlot(null);
+//   } catch (error) {
+//     console.log("ERROR RESPONSE:", error.response?.data);
+//     alert(error.response?.data?.message || "Booking failed");
+//   }
+// };
+
+const handleConfirmBooking = async () => {
+  if (!selectedSlot) {
+    alert("Please select a slot");
+    return;
+  }
+
+  const currentSchedule = schedules[selectedDateIndex]; 
+  const formatDateForBackend = (dateStr) => {
+    const [d, m, y] = dateStr.split("/");
+    return `${parseInt(d)}/${parseInt(m)}/${y}`;
   };
 
+  try {
+    await bookWorkerSlot({
+      workerId: selectedWorker,
+      slotId: selectedSlot._id,
+      date: formatDateForBackend(todayDate), 
+      startTime: selectedSlot.startTime,
+      endTime: selectedSlot.endTime,
+    });
+
+    alert("Slot booked successfully!");
+
+    // const updatedSchedules = [...schedules];
+    // updatedSchedules[selectedDateIndex].slots = updatedSchedules[
+    //   selectedDateIndex
+    // ].slots.map((s) =>
+    //   s._id === selectedSlot._id ? { ...s, isBooked: true } : s
+    // );
+
+    // setSchedules(updatedSchedules);
+    // setSelectedSlot(null);
+
+    const formattedDate = formatDateForBackend(todayDate);
+
+const updatedSchedules = schedules.map((schedule) => {
+  // match correct date
+  if (schedule.date === formattedDate) {
+    return {
+      ...schedule,
+      slots: schedule.slots.map((s) =>
+        s._id === selectedSlot._id ? { ...s, isBooked: true } : s
+      ),
+    };
+  }
+  return schedule;
+});
+
+setSchedules(updatedSchedules);
+  } catch (error) {
+    console.log("ERROR RESPONSE:", error.response?.data);
+    alert(error.response?.data?.message || "Booking failed");
+  }
+};
   const handleLogout = () => {
     localStorage.clear(); // remove token, role etc
     window.location.href = "/"; // redirect to home/login
@@ -93,6 +194,11 @@ function CustomerPage() {
       scheduleDate.getFullYear() === today.getFullYear()
     );
   };
+
+  useEffect(() => {
+  const todayStr = new Date().toLocaleDateString("en-GB");
+  setTodayDate(todayStr);
+}, []);
   return (
     <>
       {/* Workers */}
